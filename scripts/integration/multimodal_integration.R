@@ -107,6 +107,7 @@ multi <- RunUMAP(
   reduction.name='wnn.umap'
 )
 
+# Algorithm=4 is leiden 
 multi <- FindClusters(multi, graph.name = 'wsnn', algorithm = 4, 
                       verbose = T, resolution = 0.8, 
                       cluster.name='wnn_0.8', random.seed = 1)
@@ -114,29 +115,117 @@ multi <- FindClusters(multi, graph.name = 'wsnn', algorithm = 4,
 saveRDS(multi, paste0(MERGED_RDS_PATH, 'multimodal_bpcells.rds'))
 
 ################################## PLOTS ######################################
-#lsi
-p1 <- DimPlot(atac_merge, reduction = "lsi", dims = c(1, 2), group.by=c('batch'), raster = T)
-p2 <- DimPlot(atac_merge, reduction = "lsi", dims = c(1, 2), group.by=c('sample'), raster = T)
-p3 <- DimPlot(atac_merge, reduction = "lsi", dims = c(1, 2), group.by=c('seq_study_ID'), raster = T)
-p4 <- DimPlot(atac_merge, reduction = "harmony.atac", dims = c(1, 2), group.by=c('batch'), raster = T)
-p5 <- DimPlot(atac_merge, reduction = "harmony.atac", dims = c(1, 2), group.by=c('sample'), raster = T)
-p6 <- DimPlot(atac_merge, reduction = "harmony.atac", dims = c(1, 2), group.by=c('seq_study_ID'), raster = T)
 
-#umap
-p7 <- DimPlot(atac_merge, reduction = "umap", dims = c(1, 2), group.by=c('batch'), raster = T)
-p8 <- DimPlot(atac_merge, reduction = "umap", dims = c(1, 2), group.by=c('sample'), raster = T)
-p9 <- DimPlot(atac_merge, reduction = "umap", dims = c(1, 2), group.by=c('ID4'), raster = T)
-p10 <- DimPlot(atac_merge, reduction = "harmony.atac.umap", dims = c(1, 2), group.by=c('batch'), raster = T)
-p11 <- DimPlot(atac_merge, reduction = "harmony.atac.umap", dims = c(1, 2), group.by=c('sample'), raster = T)
-p12 <- DimPlot(atac_merge, reduction = "harmony.atac.umap", dims = c(1, 2), group.by=c('ID4'), raster = T)
+# rna
+p1 <- DimPlot(multi, reduction = "pca", dims = c(1, 2), group.by=c('batch'), raster = T)
+p2 <- DimPlot(multi, reduction = "pca", dims = c(1, 2), group.by=c('sample'), raster = T)
+p3 <- DimPlot(multi, reduction = "pca", dims = c(1, 2), group.by=c('ID4'), raster = T)
+p4 <- DimPlot(multi, reduction = "harmony.rna", dims = c(1, 2), group.by=c('batch'), raster = T)
+p5 <- DimPlot(multi, reduction = "harmony.rna", dims = c(1, 2), group.by=c('sample'), raster = T)
+p6 <- DimPlot(multi, reduction = "harmony.rna", dims = c(1, 2), group.by=c('ID4'), raster = T)
+p10 <- DimPlot(multi, reduction = "harmony.rna.umap", dims = c(1, 2), group.by=c('batch'), raster = T)
+p11 <- DimPlot(multi, reduction = "harmony.rna.umap", dims = c(1, 2), group.by=c('sample'), raster = T)
+p12 <- DimPlot(multi, reduction = "harmony.rna.umap", dims = c(1, 2), group.by=c('ID4'), raster = T)
+p13 <- DimPlot(multi, reduction = "harmony.rna.umap", dims = c(1, 2), group.by=c('harmony_rna_0.8')
+               , raster = T, label=T, label.size = 2, repel = T)
+
+# atac
+p1 <- DimPlot(multi, reduction = "lsi", dims = c(1, 2), group.by=c('batch'), raster = T)
+p2 <- DimPlot(multi, reduction = "lsi", dims = c(1, 2), group.by=c('sample'), raster = T)
+p3 <- DimPlot(multi, reduction = "lsi", dims = c(1, 2), group.by=c('ID4'), raster = T)
+p4 <- DimPlot(multi, reduction = "harmony.atac", dims = c(1, 2), group.by=c('batch'), raster = T)
+p5 <- DimPlot(multi, reduction = "harmony.atac", dims = c(1, 2), group.by=c('sample'), raster = T)
+p6 <- DimPlot(multi, reduction = "harmony.atac", dims = c(1, 2), group.by=c('ID4'), raster = T)
+p10 <- DimPlot(multi, reduction = "harmony.atac.umap", dims = c(1, 2), group.by=c('batch'), raster = T)
+p11 <- DimPlot(multi, reduction = "harmony.atac.umap", dims = c(1, 2), group.by=c('sample'), raster = T)
+p12 <- DimPlot(multi, reduction = "harmony.atac.umap", dims = c(1, 2), group.by=c('ID4'), raster = T)
+p13 <- DimPlot(multi, reduction = "harmony.atac.umap", dims = c(1, 2), group.by=c('harmony_atac_0.8')
+               , raster = T, label=T, label.size = 2, repel = T)
+
+# multimodal
+plot_genes <- c('PDGFRA','OLIG1','MBP','MOG','MAL','PTPRC','P2RY12','APBB1IP','CD163','CD247',
+           'PECAM1','FLT1','NES','CEMIP',
+           'TTR','HTR2C','CFAP54','AQP4','SLC1A2','ALDH1L1',
+           'GLUL','GFAP','PAX6','SOX2','MYT1L','RBFOX3',
+           'SOX1','DCX','GAD1','GAD2','SLC32A1',
+           'RELN','CALB2','NR2E1','PROX1',
+           'CCK','SLC17A8','VIP','PVALB','LHX6','SST','PENK',
+           'BHLHE22','POSTN','CALB1','SEMA5A','SLC17A7',
+           'CAMK2A','SV2B','SATB2')
+
+p1 <- DimPlot(multi, reduction = "wnn.umap", dims = c(1, 2), group.by=c('batch'), raster = T)
+p2 <- DimPlot(multi, reduction = "wnn.umap", dims = c(1, 2), group.by=c('sample'), raster = T)
+p3 <- DimPlot(multi, reduction = "wnn.umap", dims = c(1, 2), group.by=c('ID4'), raster = T)
+p4 <- DimPlot(multi, reduction = "wnn.umap", dims = c(1, 2), group.by=c('wnn_0.8'),
+              raster = T, label=T, label.size = 2, repel = T)
+
+p5 <- DotPlot(multi, assay='RNA', features = rev(plot_genes), cols = c("yellow","blue"), group.by ='wnn_0.8' ) +
+  coord_flip() +
+  theme(axis.text.x = element_text(angle = 90))
 
 
-#Clusters
-cluster_rna <- DimPlot(atac_merge, reduction = "umap", dims = c(1, 2), group.by=c('harmony_atac_clusters_0.8'), raster = T, label=T)
-cluster_h <- DimPlot(atac, reduction = "harmony.atac.umap", dims = c(1, 2), group.by=c('predictions'), raster = T, label=T, label.size = 2, repel = T)
+# dendrogram to see similarity between clusters
+embeddings <- Embeddings(object = multi, reduction = 'harmony.rna')
+data.dims <- lapply(
+  X = levels(multi),
+  FUN = function(x) {
+    cells <- WhichCells(object = multi, expression=wnn_0.8 ==x)
+    if (length(x = cells) == 1) {
+      cells <- c(cells, cells)
+    }
+    temp <- colMeans(x = embeddings[cells, ])
+  }
+)
+data.dims <- do.call(what = 'cbind', args = data.dims)
+colnames(x = data.dims) <- levels(x = multi)
+data.dist <- dist(x = t(x = data.dims))
+data.tree <- ape::as.phylo(x = hclust(d = data.dist))
+ape::plot.phylo(x = data.tree, direction = 'downwards')
+ape::nodelabels()
 
-cluster_h
 
-grid.arrange(cluster_rna, cluster_h, ncol=2)
-grid.arrange(p1, p2, p3, p4, p5, p6, ncol=3, nrow=2)
-grid.arrange(p7, p8, p9, p10, p11, p12, ncol=3, nrow=2)
+# Annotate the clusters based off gene expression dot plot
+multi$cell_annotation_leiden <- dplyr::case_when(
+  multi$wsnn_0.8 ==1 ~ "Oligo.1",
+  multi$wsnn_0.8 ==3 ~ "Oligo.2",
+  multi$wsnn_0.8 ==30 ~ "Oligo.3",
+  multi$wsnn_0.8 ==10 ~ "Astro.2",
+  multi$wsnn_0.8 == 6 ~ "Astro.1",
+  multi$wsnn_0.8 ==2 ~ "GC.1",
+  multi$wsnn_0.8 ==13 ~ "GC.2",
+  multi$wsnn_0.8 ==22 ~ "GC.3",
+  multi$wsnn_0.8 ==24 ~ "GC.4",
+  multi$wsnn_0.8 ==29 ~ "GC.5",
+  multi$wsnn_0.8 ==5 ~ "Micro",
+  multi$wsnn_0.8 ==31 ~ "TC",
+  multi$wsnn_0.8 ==21 ~ "Epe",
+  multi$wsnn_0.8 ==9 ~ "Endo",
+  multi$wsnn_0.8 ==27 ~ "VLMC",
+  multi$wsnn_0.8 ==7 ~ "OPC",
+  multi$wsnn_0.8 ==19 ~ "CP",
+  multi$wsnn_0.8 ==14 ~ "InN.2",
+  multi$wsnn_0.8 ==12 ~ "InN.1",
+  multi$wsnn_0.8 ==20 ~ "InN.4",
+  multi$wsnn_0.8 ==18 ~ "InN.3",
+  multi$wsnn_0.8 ==26 ~ "InN.6",
+  multi$wsnn_0.8 ==28 ~ "InN.7",
+  multi$wsnn_0.8 ==25 ~ "InN.5",
+  multi$wsnn_0.8 ==4 ~ "ExN.1",
+  multi$wsnn_0.8 ==8 ~ "ExN.2",
+  multi$wsnn_0.8 ==11 ~ "ExN.3",
+  multi$wsnn_0.8 ==15 ~ "ExN.4",
+  multi$wsnn_0.8 ==16 ~ "ExN.5",
+  multi$wsnn_0.8 ==17 ~ "ExN.6",
+  multi$wsnn_0.8 ==23 ~ "ExN.7",
+)
+
+# Plot proportions of cluster in samples
+props <- prop.table(table(multi$sample, multi$cell_annotation_leiden)) %>% as.data.frame()
+random_colors <- sample(colors(), length(unique(props$Var2)))
+ggplot(props, aes(x = Var1, y = Freq, fill = Var2)) +
+  geom_bar(stat = "identity", position = 'fill') +
+  labs(title = "WNN Clusters",
+       x = "Cluster", y = "Proportion", fill = "Sample") +
+  theme_minimal() +
+  scale_fill_manual(values = random_colors)+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
