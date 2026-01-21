@@ -1,4 +1,5 @@
 
+
 sample_ids <- c()
 
 srat_objects <- lapply(sample_ids, function(i) {
@@ -6,3 +7,6 @@ srat_objects <- lapply(sample_ids, function(i) {
   srat <- readRDS(path)
   return(srat)
 })
+
+# Merge
+# Filter out the QC below 500

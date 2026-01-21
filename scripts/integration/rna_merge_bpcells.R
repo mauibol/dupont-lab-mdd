@@ -38,17 +38,49 @@ rm(rna_srats)
 gc()
 
 # Merge the bpcells seurat objects and join layers if v5
-rna_merge <- merge(
+rna <- merge(
   x = rna_bpcells[[1]],
   y = rna_bpcells[2:length(rna_bpcells)],
   add.cell.ids = sample_ids
 )
 
 #Join the layers into 1 matrix
-rna_merge <- JoinLayers(rna_merge)
+rna <- JoinLayers(rna)
 
 # Write merged matrix to disk with bpcells and read it in to normalize and reduce
-write_matrix_dir(mat=rna_merge[['RNA']]$counts, dir=paste0(MERGED_RDS_PATH, 'merged/bpcells_rna'))
+write_matrix_dir(mat=rna[['RNA']]$counts, dir=paste0(MERGED_RDS_PATH, 'merged/bpcells_rna'))
 
 # Save merged object
-saveRDS(rna_merge, paste0(MERGED_RDS_PATH, 'merged_rna_bpcells.rds'))
+saveRDS(rna, paste0(MERGED_RDS_PATH, 'rna_bpcells.rds'))
+
+# Preliminary processing for cleaning, visualizing and removing doublets
+rna <- NormalizeData(rna)
+rna <- FindVariableFeatures(rna)
+rna <- ScaleData(rna)
+rna <- RunPCA(rna, npcs = 40)
+
+rna <- RunHarmony(rna, group.by.vars = c('sample', 'batch', 'ID4'),
+                   plot_convergence = T, reduction.save = "harmony.rna")
+
+rna <- FindNeighbors(rna, reduction = 'harmony.rna', dims = 1:30)
+rna <- FindClusters(rna, cluster.name = 'prelim_clusters_rna')
+rna <- RunUMAP(rna, reduction = 'harmony.rna', dims = 1:40, reduction.name = 'umap.rna', reduction.key = 'rnaUMAP_')
+
+# Plots
+DimPlot_scCustom(rna9, reduction = 'harmony.rna.umap', group.by = 'prelim_clusters_rna', label = T)
+DimPlot_scCustom(rna9, reduction = 'harmony.rna.umap', group.by = 'scDblFinder.class', label = T)
+
+# Filter out the doublets both detected by doublet finder and based on clusters
+rna$to_keep <- dplyr::case_when(
+  rna$prelim_clusters_rna==35 ~ FALSE,
+  rna$scDblFinder.class == 'doublet' ~ FALSE,
+  .default=TRUE
+)
+
+rna <- subset(rna, subset = to_keep == TRUE)
+saveRDS(rna, paste0(MERGED_RDS_PATH, 'rna_bpcells_filtered.rds'))
+
+
+
+
+
