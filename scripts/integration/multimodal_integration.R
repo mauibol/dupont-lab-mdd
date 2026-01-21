@@ -29,13 +29,12 @@ multi <- rna
 multi[['ATAC']] <- atac[['ATAC']]
 
 # Run Seurat Pipeline on each assay separately
-#### RNA ####
+############### RNA #############
 DefaultAssay(multi) <- 'RNA'
 multi <- NormalizeData(multi)
 multi <- FindVariableFeatures(multi)
 multi <- ScaleData(multi)
 multi <- RunPCA(multi, npcs = 40)
-multi <- RunUMAP(multi, reduction = 'pca', dims = 1:40, reduction.name = 'rna.umap', reduction.key = 'rnaUMAP_')
 
 multi <- RunHarmony(multi, group.by.vars = c('sample', 'batch', 'ID4'),
                   plot_convergence = T, reduction.save = "harmony.rna")
@@ -45,8 +44,13 @@ multi <- FindClusters(multi, resolution = 0.8, cluster.name = 'harmony_rna_0.8')
 multi <- RunUMAP(multi, reduction = "harmony.rna", dims = 1:40, reduction.name = 'harmony.rna.umap', reduction.key = 'HarmonyRnaUMAP_')
 
 
+# Run Seurat Pipeline on each assay separately
+########### ATAC ##############
+DefaultAssay('ATAC')
 
 # Because Signac does not have compatibility with BPCells, must run TFIDF on the ATAC matrix itself
+mtx <- multi[['ATAC']]$counts
+
 # Normalize and LSI ATAC BPCells matrix 
 mat_lsi <- mtx %>%
   multiply_cols(1 / Matrix::colSums(mtx)) %>%
@@ -64,40 +68,31 @@ mat_lsi_norm <- mat_lsi %>%
 svd_atac <- BPCells::svds(mat_lsi_norm, k=40)
 pca_atac <- multiply_cols(svd_atac$v, svd_atac$d)
 
-
-# Add lsi embedding into Seurat Object
-rownames(pca_atac) <- colnames(atac)
-atac[['lsi']] <- Seurat::CreateDimReducObject(
+# Add lsi embedding into Seurat Object atac assay
+rownames(pca_atac) <- colnames(multi)
+multi[['lsi']] <- Seurat::CreateDimReducObject(
   embeddings = pca_atac,
   key = "lsi_",
   assay = 'ATAC'
 )
 
-
-#UMAP and clustering PRE-integration
-atac <- RunUMAP(atac, reduction = "lsi", dims = 1:30, 
-                reduction.name = 'umap', 
-                reduction.key = 'umap_')
-
-atac_merge <- FindNeighbors(atac_merge, reduction='lsi', dims=1:30)
-atac_merge <- FindClusters(atac_merge, reduction='lsi', resolution=0.8, cluster.name = 'atac_clusters_0.8')
-
-
-#Harmony Integration
-atac <- RunHarmony(atac, group.by.vars = c('sample', 'batch', 'ID4'), reduction = 'lsi', dims.use = 2:40,
+#UMAP, harmony, clustering
+multi <- RunHarmony(multi, group.by.vars = c('sample', 'batch', 'ID4'), reduction = 'lsi', dims.use = 1:40,
                    plot_convergence = T, reduction.save = "harmony.atac", assay.use = "ATAC", verbose = TRUE, project.dim = FALSE)
 
+multi <- FindNeighbors(multi, reduction='harmony.atac', dims=1:40)
+multi <- FindClusters(multi, reduction='harmony.atac', resolution=0.8, cluster.name = 'harmony_atac_0.8')
+
+multi <- RunUMAP(multi, reduction = "harmony.atac", dims = 1:40, 
+                 reduction.name = 'harmony.atac.umap', 
+                 reduction.key = 'HarmonyAtacUMAP_')
 
 
-atac <- RunUMAP(atac, reduction = "harmony.atac", dims = 1:29, 
-                reduction.name = 'harmony.atac.umap', 
-                reduction.key = 'harmony.umap_')
+############### Multimodal WNN Analysis #######################
 
-atac <- FindNeighbors(atac, reduction='harmony.atac', dims=1:29)
-atac <- FindClusters(atac, reduction='harmony.atac', resolution=0.8, cluster.name = 'harmony_atac_0.8')
 
-# PLOTS
 
+################## PLOTS ############################
 #lsi
 p1 <- DimPlot(atac_merge, reduction = "lsi", dims = c(1, 2), group.by=c('batch'), raster = T)
 p2 <- DimPlot(atac_merge, reduction = "lsi", dims = c(1, 2), group.by=c('sample'), raster = T)
