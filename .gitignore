@@ -57,5 +57,8 @@ config.R
 
 *.csv
 
+#MacOS
+.DS_Store
+
 .RDataTmp1
 .RDataTmp*
