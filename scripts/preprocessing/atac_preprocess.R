@@ -12,8 +12,8 @@ library(harmony)
 
 # Genomic annotations 
 annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v86)
-seqlevelsStyle(annotations) <- "UCSC"
-#genome(annotations) <- "hg38"
+seqlevels(annotations) <- paste0("chr", seqlevels(annotations))
+genome(annotations) <- "hg38"
 
 
 ############################# HELPER FUNCTIONS #################################
@@ -140,12 +140,9 @@ sample_ids <- c(
   "MM102", "MM103", "MM145", "MM146", "MM147", "MM148", "MM149", "MM150",
   "MM151", "MM152"
 )
-print(ids)
-
-rna_meta$gex_barcode <- substr(rownames(rna_meta), 7,24)
 
 # Filtered unified peak set from cellranger method
-combined_peaks <- create_peak_set(ids, method = 'cellranger')
+combined_peaks <- create_peak_set(sample_ids, method = 'cellranger')
 
 atac_srats <- lapply(ids, function(id) {
   srats <- create_atac_srat(id, combined_peaks)
