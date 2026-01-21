@@ -97,7 +97,7 @@ DefaultAssay(v2) <- 'anchor_predictions'
 
 
 # create a column variable for metadata that concatenates donor age and sample
-v2$sampleinfo <- paste0(viz$donor, "_", viz$age, "_", viz$sample)
+v2$sampleinfo <- paste0(v2$donor, "_", v2$age, "_", v2$sample)
 
 
 pdf(paste0(PLOTS_PATH, "v2_anchorbased_cell_annotation_leiden_GC.1.pdf"), height = 7, width = 7, onefile = T)
