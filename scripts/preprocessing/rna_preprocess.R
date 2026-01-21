@@ -137,9 +137,18 @@ genes <- c('PDGFRA','OLIG1','MBP','MOG','MAL','PTPRC','P2RY12','APBB1IP','CD163'
            'CAMK2A','SV2B','SATB2')
 
 # List the sample IDs that are being processed
-sample_ids <- c('CM021', 'CM024', 'CM025', 'CM073', 'CM115', 
-                'MM001', 'MM008', 'MM023','MM145','MM151')
-
+sample_ids <- c(
+  "CM021", "CM023", "CM024", "CM025", "CM026", "CM027", "CM028", "CM038",
+  "CM039", "CM040", "CM041", "CM042", "CM043", "CM044", "CM053", "CM055",
+  "CM056", "CM057", "CM058", "CM059", "CM060", "CM069", "CM070", "CM071",
+  "CM072", "CM073", "CM074", "CM075", "CM085", "CM086", "CM087", "CM088",
+  "CM089", "CM090", "CM091", "CM092", "CM109", "CM110", "CM111", "CM112",
+  "CM113", "CM114", "CM115", "CM116", "MM001", "MM002", "MM006", "MM007",
+  "MM008", "MM016", "MM023", "MM024", "MM080", "MM081", "MM082", "MM083",
+  "MM084", "MM085", "MM086", "MM087", "MM096", "MM097", "MM100", "MM101",
+  "MM102", "MM103", "MM145", "MM146", "MM147", "MM148", "MM149", "MM150",
+  "MM151", "MM152"
+)
 
 # Loop through all the sample ids
 for (id in sample_ids) {
@@ -197,7 +206,7 @@ for (id in sample_ids) {
   print(umap_plot_doublets)
   dev.off()
   
-  saveRDS(soupx_filt, paste0(RNA_PROCESSED_RDS_PATH, id, "_processed.rds"))
+  saveRDS(soupx_filt, paste0(RNA_PROCESSED_RDS_PATH, id, "_rna_processed.rds"))
   print(paste("Done with sample", id, "!!!"))
   
 }
