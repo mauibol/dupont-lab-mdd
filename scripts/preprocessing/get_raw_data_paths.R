@@ -5,7 +5,7 @@ library(glue)
 
 get_raw_path_visium <- function(i) {
   base_path <- glue("{RAW_DATA_PATH}/250131_MAURA_MADELINE_7_HUMAN_LIBRARY_SELF_3B_PE150_X/")
-  sub_dir <- glue("{i}/analysis/250131_MAURA_MADELINE_7_HUMAN_LIBRARY_SELF_3B_PE150_X-{i}-sp/")
+  sub_dir <- glue("{i}/analysis/250131_MAURA_MADELINE_7_HUMAN_3B_PE150_X-{i}-spaceranger-count/")
   
   if (i %in% c('RM005', 'RM006', 'RM007', 'RM008', 'RM009')){
     base_path <- glue('{RAW_DATA_PATH}/250417_MAURA_RAKSHITHA_2_HUMAN_LIBRARY_SELF_3B_PE150_X/analysis/')
