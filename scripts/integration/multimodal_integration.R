@@ -89,10 +89,31 @@ multi <- RunUMAP(multi, reduction = "harmony.atac", dims = 1:40,
 
 
 ############### Multimodal WNN Analysis #######################
+multi <- FindMultiModalNeighbors(
+  multi,
+  reduction.list = list('harmony.rna', 'harmony.atac'),
+  dims.list = list(1:40, 1:39),
+  knn.graph.name = "wknn",
+  snn.graph.name = "wsnn",
+  modality.weight.name = "RNA.weight",
+  verbose = TRUE,
+  prune.SNN = 1/20,
+  k.nn = 20
+)
 
+multi <- RunUMAP(
+  multi,
+  nn.name='weighted.nn',
+  reduction.name='wnn.umap'
+)
 
+multi <- FindClusters(multi, graph.name = 'wsnn', algorithm = 4, 
+                      verbose = T, resolution = 0.8, 
+                      cluster.name='wnn_0.8', random.seed = 1)
 
-################## PLOTS ############################
+saveRDS(multi, paste0(MERGED_RDS_PATH, 'multimodal_bpcells.rds'))
+
+################################## PLOTS ######################################
 #lsi
 p1 <- DimPlot(atac_merge, reduction = "lsi", dims = c(1, 2), group.by=c('batch'), raster = T)
 p2 <- DimPlot(atac_merge, reduction = "lsi", dims = c(1, 2), group.by=c('sample'), raster = T)
