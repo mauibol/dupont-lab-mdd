@@ -1,0 +1,173 @@
+---
+title: "Volcano plot"
+output: html_document
+date: "2025-10-17"
+---
+```{r}
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+library(readxl)
+library(EnhancedVolcano)
+```
+
+```{r}
+ExN.1_summary = read_excel("ExN.1 summary.xlsx") %>%
+  rename(diff_bind = ExN.1MDD_ExN.1CTRL_change,
+         pval = ExN.1MDD_ExN.1CTRL_pvalue,
+         highlighted = ExN.1MDD_ExN.1CTRL_highlighted) %>%
+  mutate(pval = as.numeric(gsub(",", "", pval)))
+```
+
+```{r}
+GN.1_summary = read_excel("GN.1 summary.xlsx") %>%
+  rename(diff_bind = GN.1MDD_GN.1CTRL_change,
+         pval = GN.1MDD_GN.1CTRL_pvalue,
+         highlighted = GN.1MDD_GN.1CTRL_highlighted) %>%
+  mutate(pval = as.numeric(gsub(",", "", pval)))
+```
+
+```{r}
+InN.5_summary = read_excel("InN.5 summary.xlsx") %>%
+  rename(diff_bind = InN.5MDD_InN.5CTRL_change,
+         pval = InN.5MDD_InN.5CTRL_pvalue,
+         highlighted = InN.5MDD_InN.5CTRL_highlighted) %>%
+  mutate(pval = as.numeric(gsub(",", "", pval)))
+```
+
+```{r}
+volcano_plot = function(df, 
+                        tf_to_label = c(""),
+                        Title = "Volcano Plot of Differential Binding",
+                        subtitle = "") {
+  # Example dataset (replace with your real one)
+  set.seed(42)
+
+  # Add log10(p-value)
+  df$logp <- -log10(df$pval)
+
+  # Volcano plot
+p <- ggplot(df, aes(x = diff_bind, y = logp)) +
+  geom_point(aes(color = highlighted), alpha = 0.6, size = 2) +
+  scale_color_manual(values = c("TRUE" = "#e41a1c", "FALSE" = "#1f77b4"),
+                     labels = c("TRUE" = "Top/bottom 5 %", "FALSE" = "Other TF"),
+                     name = NULL) +
+  geom_vline(xintercept = c(-0.1, 0.1), linetype = "dashed", color = "grey60") +
+  geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "grey60") +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey60") +
+  geom_text_repel(
+    data = subset(df, (name %in% tf_to_label | output_prefix %in% tf_to_label) & is.finite(logp) & is.finite(diff_bind)),
+    aes(label = name),
+    size = 4, max.overlaps = Inf, 
+    # force = 25,
+    # max.time = 10,
+    box.padding = 0.3,
+    point.padding = 0.2, min.segment.length = 0, segment.size = 0.4,
+    seed = 7,
+    fontface = "bold"
+  ) + 
+  labs(
+    title = Title,
+    x = "Differential Binding Score",
+    y = "-log10(p-value)"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    panel.grid = element_blank(),  # ❌ remove grid lines
+    panel.background = element_rect(fill = "transparent", color = NA),
+    plot.background  = element_rect(fill = "transparent", color = NA),
+    legend.background = element_rect(fill = "transparent", color = NA),
+    plot.title = element_text(face = "bold", size = 20, hjust = 0.5),
+    legend.text = element_text(size = 14, face = "bold"),
+    legend.position = "top"
+  )
+
+# Show the plot
+print(p)
+}
+```
+
+```{r}
+p = volcano_plot(ExN.1_summary, tf_to_label = c("KLF15", "PATZ1", "ZNF93",'ZNF211',"ZNF384","ZNF610"),
+                 Title = "ExN.1", subtitle = "Top/bottom 5% TFs by -log(p-value) or binding score (highlighted)")
+```
+
+```{r}
+ggsave(filename = "ExN.1 Volcano plot2.png",
+       plot = p,
+       bg = "transparent",
+       width = 6,
+       height = 4,
+       dpi = 600)
+```
+
+```{r}
+ggsave(
+  filename = "ExN.1_Volcano_plot_bolder.pdf",
+  plot = p,
+  bg = "transparent",
+  width = 6,
+  height = 5,
+  device = "pdf"
+)
+```
+
+```{r}
+p2 = volcano_plot(GN.1_summary, tf_to_label = c("ZIC4_MA0751.2", "ZIC5_MA1584.2",
+  "EGR1_MA0162.5", "EGR2_MA0472.2", "EGR3_MA0732.2", "EGR4_MA0733.2",
+  "KLF15_MA1513.2", "ZNF549_MA1728.2", "Zfp961_MA2126.1", "PATZ1_MA1961.2", "ZNF148_MA1653.2", "MAZ_MA1522.2",
+  "ZNF384_MA1125.2",
+  "MYOG_MA0500.3", "ASCL1_MA1100.3", "ZNF211"),
+                 Title = "GC.1")
+
+```
+
+```{r}
+ggsave(filename = "GC.1 Volcano plot2.png",
+       plot = p2,
+       bg = "transparent",
+       width = 6,
+       height = 4,
+       dpi = 600)
+```
+
+```{r}
+ggsave(
+  filename = "GC.1 Volcano plot_bolder.pdf",
+  plot = p2,
+  bg = "transparent",
+  width = 6,
+  height = 5,
+  device = "pdf"
+)
+```
+
+```{r}
+p3 = volcano_plot(InN.5_summary, tf_to_label = c("KLF15_MA1513.2", "SP2_MA0516.3", "ZBED4_MA2328.1", "TFAP2B_MA0811.2", "TFAP2C_MA0524.3", "KLF3_MA1516.2",
+                    "ZNF93_MA1721.2","Foxn1_MA1684.1", "ZNF692_MA1986.2",
+                    "ZBED4_MA2328.1", "ZBTB24_MA2330.1",
+                    "PATZ1_MA1961.2", "KLF10_MA1511.2", "KLF14_MA0740.2", "EGR3_MA0732.2",
+                    "KLF2_MA1515.2", "KLF7_MA1959.2", "ZNF384", "ZNF211"),
+                 Title = "InN.5")
+```
+
+```{r}
+ggsave(filename = "InN.5 Volcano plot3.png",
+       plot = p3,
+       bg = "transparent",
+       width = 6,
+       height = 4,
+       dpi = 600)
+```
+
+```{r}
+ggsave(
+  filename = "InN.5 Volcano plot_bolder.pdf",
+  plot = p3,
+  bg = "transparent",
+  width = 6,
+  height = 5,
+  device = "pdf"
+)
+```
+
