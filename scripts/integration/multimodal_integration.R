@@ -31,18 +31,18 @@ multi[['ATAC']] <- atac[['ATAC']]
 # Run Seurat Pipeline on each assay separately
 #### RNA ####
 DefaultAssay(multi) <- 'RNA'
-rna <- NormalizeData(rna)
-rna <- FindVariableFeatures(rna)
-rna <- ScaleData(rna)
-rna <- RunPCA(rna, npcs = 40)
-rna <- RunUMAP(rna, reduction = 'pca', dims = 1:40, reduction.name = 'rna.umap', reduction.key = 'rnaUMAP_')
+multi <- NormalizeData(multi)
+multi <- FindVariableFeatures(multi)
+multi <- ScaleData(multi)
+multi <- RunPCA(multi, npcs = 40)
+multi <- RunUMAP(multi, reduction = 'pca', dims = 1:40, reduction.name = 'rna.umap', reduction.key = 'rnaUMAP_')
 
-rna <- RunHarmony(rna, group.by.vars = c('sample', 'batch', 'ID4'),
+multi <- RunHarmony(multi, group.by.vars = c('sample', 'batch', 'ID4'),
                   plot_convergence = T, reduction.save = "harmony.rna")
 
-rna <- FindNeighbors(rna, reduction = "harmony.rna", dims = 1:40)
-rna <- FindClusters(rna, resolution = 0.8, cluster.name = 'harmony_rna_0.8')
-rna <- RunUMAP(rna, reduction = "harmony.rna", dims = 1:40, reduction.name = 'harmony.rna.umap', reduction.key = 'HarmonyRnaUMAP_')
+multi <- FindNeighbors(multi, reduction = "harmony.rna", dims = 1:40)
+multi <- FindClusters(multi, resolution = 0.8, cluster.name = 'harmony_rna_0.8')
+multi <- RunUMAP(multi, reduction = "harmony.rna", dims = 1:40, reduction.name = 'harmony.rna.umap', reduction.key = 'HarmonyRnaUMAP_')
 
 
 
