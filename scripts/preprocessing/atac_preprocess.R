@@ -75,6 +75,9 @@ create_atac_srat <- function(id, peak_set) {
       header = TRUE,
       row.names = 1)
     
+    is_cell <- meta$is_cell == 1
+    meta <- meta[is_cell,]
+    
     # Create Fragment object
     print(paste0("Creating Fragments object for ", id))
     fragments <- CreateFragmentObject(
