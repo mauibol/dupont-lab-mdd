@@ -1,0 +1,80 @@
+---
+title: "graph output"
+output: html_document
+date: "2025-10-30"
+---
+
+```{r}
+library(tidygraph)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(ggraph)
+```
+
+```{r}
+source("Master_Graph.R")
+source("sub_graphs.R")
+```
+
+```{r}
+Gn.1_p = Partial_graph_same_direction(GN.1_network, cell = "GC.1", TF = c("ZIC4_MA0751.2", "ZIC5_MA1584.2",
+  "EGR1_MA0162.5", "EGR2_MA0472.2", "EGR3_MA0732.2", "EGR4_MA0733.2",
+  "KLF15_MA1513.2", "ZNF549_MA1728.2", "Zfp961_MA2126.1", "PATZ1_MA1961.2", "ZNF148_MA1653.2", "MAZ_MA1522.2",
+  "ZNF384_MA1125.2",
+  "MYOG_MA0500.3", "ASCL1_MA1100.3"))
+```
+
+```{r}
+Gn.1_p
+```
+
+```{r}
+ggsave(
+  filename = "Gn.1_Partial_network same direction.pdf",  # or .pdf / .tiff etc.
+  plot = Gn.1_p,
+  width = 5, 
+  height = 4, 
+  dpi = 300
+)
+```
+
+```{r}
+pdf('Gn.1_Partial_network same direction3.pdf', onefile = T, width= 0.5, height = 0.4)
+print(Gn.1_p)
+dev.off()
+```
+
+```{r}
+InN.5_p = Partial_graph_same_direction(InN.5_network, cell = "InN.5", TF = c( "KLF15_MA1513.2", "SP2_MA0516.3", "ZBED4_MA2328.1", "TFAP2B_MA0811.2", "TFAP2C_MA0524.3", "KLF3_MA1516.2",
+                    "ZNF93_MA1721.2","Foxn1_MA1684.1", "ZNF692_MA1986.2",
+                    "ZBED4_MA2328.1", "ZBTB24_MA2330.1",
+                    "PATZ1_MA1961.2", "KLF10_MA1511.2", "KLF14_MA0740.2", "EGR3_MA0732.2",
+                    "KLF2_MA1515.2", "KLF7_MA1959.2"))
+```
+
+```{r}
+pdf('InN.5_Partial_network same direction.pdf', onefile = T, width= 5, height = 4)
+print(InN.5_p)
+dev.off()
+```
+
+```{r}
+ggsave(
+  filename = "InN.5_Partial_network same direction2.png",  # or .pdf / .tiff etc.
+  plot = InN.5_p,
+  width = 5, height = 4, dpi = 600
+)
+```
+
+```{r}
+ExN.1_p = Partial_graph(ExN.1_network, cell = "ExN.1", TF = c("KLF15","KLF3", "ZNF682"))
+ExN.1_p
+```
+
+```{r}
+pdf('ExN.1_network.pdf', onefile = T, width= 5, height = 4)
+print(ExN.1_p)
+dev.off()
+```
+

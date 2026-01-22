@@ -1,0 +1,75 @@
+---
+title: "Data management"
+output: html_document
+date: "2025-10-13"
+---
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(readxl)
+```
+
+```{r}
+GN.1 = read.csv("GN.1_combined_filtered.csv") %>%
+  rename(footprint_log2fc = GN.1MDD_GN.1CTRL_log2fc) %>%
+  mutate(tf_name = str_remove(TFBS_name, "_MA\\d{4}\\.\\d+"))
+ExN.1 = read.csv("ExN.1_combined_filtered.csv") %>%
+  rename(footprint_log2fc = ExN.1MDD_ExN.1CTRL_log2fc) %>%
+  mutate(tf_name = str_remove(TFBS_name, "_MA\\d{4}\\.\\d+"))
+InN.5 = read.csv("InN.5_combined_filtered.csv") %>%
+  rename(footprint_log2fc = InN.5MDD_InN.5CTRL_log2fc) %>%
+  mutate(tf_name = str_remove(TFBS_name, "_MA\\d{4}\\.\\d+"))
+```
+
+```{r}
+protein = read_excel("Proteomics_Report_2025.06.04_Lydia_edited.xlsx") %>%
+  select(Protein, significant_DEG, gene_match_DEG, cluster, `P-value [MDD vs. C]`, direction_match) %>%
+  filter(significant_DEG == "Yes") %>%
+  rename(gene = gene_match_DEG)
+```
+
+```{r}
+protein$Protein[protein$Protein == "Ras-related protein Rab-6B"] <- "Ras-Rab6B"
+protein$Protein[protein$Protein == "CaM kinase-like vesicle-associated protein"] <- "CaMKin-VAP"
+protein$Protein[protein$Protein == "Hypoxia up-regulated protein 1"] <- "Hyp-up1"
+protein$Protein[protein$Protein == "ADP/ATP translocase 3"] <- "ADP-ATP Transloc3"
+protein$Protein[protein$Protein == "V-type proton ATPase subunit D"] <- "V-ATPase-D"
+protein$Protein[protein$Protein == "Ras-related C3 botulinum toxin substrate 1"] <- "RasC3-1"
+protein$Protein[protein$Protein == "DnaJ homolog subfamily A member 1"] <- "DnaJ-A1"
+protein$Protein[protein$Protein == "Synaptotagmin-5"] <- "Synapto-5"
+protein$Protein[protein$Protein == "ARF GTPase-activating protein GIT1"] <- "ARF-GTPase-act. GIT1"
+protein$Protein[protein$Protein == "Cytoplasmic FMR1-interacting protein 2"] <- "FMR1-int. prot.2"
+protein$Protein[protein$Protein == "Neurofilament heavy polypeptide"] <- "Neurofilament-H"
+protein$Protein[protein$Protein == "Malate dehydrogenase, cytoplasmic"] <- "Malate-dehyd. (cyto)"
+protein$Protein[protein$Protein == "Testis-specific Y-encoded-like protein 1"] <- "TSPY-like1"
+protein$Protein[protein$Protein == "Ribonuclease inhibitor"] <- "RNase-inhib."
+protein$Protein[protein$Protein == "Acylphosphatase-2"] <- "Acylphos-2"
+protein$Protein[protein$Protein == "Homer protein homolog 1"] <- "Homer-1"
+protein$Protein[protein$Protein == "Hippocalcin-like protein 1"] <- "Hippocalcin-like1"
+protein$Protein[protein$Protein == "14-3-3 protein eta"] <- "14-3-3 eta"
+protein$Protein[protein$Protein == "Cytoplasmic FMR1-interacting protein 2"] <- "FMR1-int. prot.2"
+protein$Protein[protein$Protein == "GTPase KRas"] <- "GTPase-KRas"
+protein$Protein[protein$Protein == "Methionine adenosyltransferase 2 subunit beta"] <- "Methionine-adenoT-2β"
+```
+
+```{r}
+gene_protein_InN.5 = protein %>% 
+  filter(cluster %in% c("InN.PENK.MME", "InN.PENK.MME; GC.1")) %>%
+  rename(p_value_protein = `P-value [MDD vs. C]`)
+
+gene_protein_GN.1 = protein %>% 
+  filter(cluster %in% c("GC.1", "InN.PENK.MME; GC.1")) %>%
+  rename(p_value_protein = `P-value [MDD vs. C]`)
+
+gene_protein_ExN.1 = protein %>% 
+  filter(cluster %in% c("ExN.CA1-2.FIBCD1.FNDC1", "ExN.proximalSUB.MUC19.GLP2R", "ExN.proximalSUB.MUC19.GLP2R; InN.PENK.MME")) %>%
+  rename(p_value_protein = `P-value [MDD vs. C]`)
+```
+
+```{r}
+InN.5_network = left_join(InN.5, gene_protein_InN.5, by = "gene")
+GN.1_network = left_join(GN.1, gene_protein_GN.1, by = "gene")
+ExN.1_network = left_join(ExN.1, gene_protein_ExN.1, by = "gene")
+```
+
