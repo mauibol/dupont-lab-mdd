@@ -1,0 +1,548 @@
+---
+title: "Task 3.1"
+output: html_document
+date: "2025-12-16"
+---
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+library(cowplot)
+library(scales)
+library(ggtext)
+```
+
+```{r}
+add_pvalue_block <- function(
+  p,
+  x,
+  y,
+  n,
+  p1,
+  p2,
+  label1 = "p",
+  label2 = "p",
+  col_n  = "black",
+  col_p1 = "deepskyblue3",
+  col_p2 = "darkgoldenrod1",
+  size   = NULL,
+  line_gap = 0.4
+) {
+
+  if (is.null(size)) {
+    th <- ggplot2::theme_get()
+    size <- th$text$size %||% 11
+  }
+
+  dy = line_gap
+
+  p +
+    annotate(
+      "text",
+      x = x, y = y + dy,
+      label = paste0("bolditalic(n == ", n, ")"),
+      parse = TRUE,
+      color = col_n
+    ) +
+    annotate(
+      "text",
+      x = x, y = y,
+      label = paste0(
+        "italic(p) == ", p1
+      ),
+      parse = TRUE,
+      color = col_p1
+    ) +
+    annotate(
+      "text",
+      x = x, y = y - dy,
+      label = paste0(
+        "italic(p) == ", p2
+      ),
+      parse = TRUE,
+      color = col_p2
+    )
+}
+
+```
+
+```{r}
+Very_Full %>% filter(!is.na(RIN) & !is.na(Age))
+Very_Full %>% filter(!is.na(RIN) & !is.na(Brain_pH))
+```
+
+```{r}
+agerin_ctrl = lm(RIN ~ Age, data = subset(Very_Full2, Group == "CTRL"))
+agerin_mdd = lm(RIN ~ Age, data = subset(Very_Full2, Group == "MDD"))
+summary(agerin_ctrl)
+summary(agerin_mdd)
+```
+
+```{r}
+p_agerin = ggplot(Very_Full2, aes(x = Age, y = RIN, fill = Group, shape = Brain_Bank_Location, color = Group)) +
+  geom_point(size = 5, stroke = 0.8, alpha = 0.8) +
+    scale_y_continuous(
+    limits = c(0, 10),        
+    breaks = seq(2, 8, 2)    
+  ) +
+  scale_x_continuous(
+    limits = c(0, 97.5),        
+    expand = expansion(add = c(0, 10))
+  ) +
+  geom_abline(intercept = 7.51973, slope = -0.01875, color = "deepskyblue3") +
+  geom_abline(intercept = 8.93324, slope = -0.03698, color = "darkgoldenrod1") +
+  scale_shape_manual(name = "Collection Location", values = c(21, 24, 22)) +
+  scale_fill_manual(values = c("deepskyblue3", "darkgoldenrod1")) +
+  scale_color_manual(values=c("deepskyblue4","saddlebrown"), guide = "none") +
+  labs(y = "RIN") +
+  guides(
+  fill = guide_legend(
+    order = 1,
+    direction = "horizontal",   
+    override.aes = list(
+      shape = 21,
+      fill  = c("deepskyblue3", "darkgoldenrod1"),
+      color = c("deepskyblue4","saddlebrown")
+    ))
+) +
+  theme(
+    text = element_text(face = "bold")) +
+  theme(text = element_text(size = 24),
+        axis.line = element_line(),
+        panel.background = element_rect(fill='white'),
+        plot.background = element_rect(fill='white', color=NA),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = "top",
+        legend.background = element_blank(),
+        legend.box.background = element_blank(),
+        legend.box = "vertical",
+        legend.key.size = unit(0.3, "cm"),      
+        legend.key.height = unit(0.3, "cm"),     
+        legend.spacing.x = unit(0.2, "cm"),      
+        plot.title = element_text(face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(face = "bold", hjust = 0.5),
+        axis.title.x = element_text(face = "bold",
+                                    margin = margin(t = 2)),
+        axis.title.y = element_text(face = "bold",
+                                    margin = margin(r = 2)),
+        axis.text.x = element_text(face = "bold",
+                                   size = 24),
+        axis.text.y = element_text(face = "bold",
+                                   size = 24),
+        legend.text = element_text(face = "bold"),
+        legend.title = element_text(face = "bold"))+
+  theme(legend.position = "none")
+p_agerin <- add_pvalue_block(
+  p_agerin,
+  size = 24,
+  x = 75,
+  y = 9.5,
+  n  = 76,
+  p1 = "0.13",
+  p2 = "0.01"
+)
+p_agerin
+```
+
+```{r}
+ggsave("graph/RIN vs AGE FULL.pdf", p_agerin, device = cairo_pdf, dpi = 72, width = 4, height = 4)
+```
+
+```{r}
+pHrin_ctrl = lm(RIN ~ Brain_pH, data = subset(Very_Full2, Group == "CTRL"))
+pHrin_mdd = lm(RIN ~ Brain_pH, data = subset(Very_Full2, Group == "MDD"))
+summary(pHrin_ctrl)
+summary(pHrin_mdd)
+```
+
+```{r}
+p_pHrin = ggplot(Very_Full2, aes(x = Brain_pH, y = RIN, fill = Group, shape = Brain_Bank_Location, color = Group)) +
+  geom_point(size = 5, stroke = 0.8, alpha = 0.8) +
+    scale_y_continuous(
+    limits = c(0, 10),       
+    breaks = seq(2, 8, 2)    
+  ) +
+  scale_x_continuous(
+    limits = c(5.5, 7.125),       
+  ) +
+  geom_abline(intercept = -7.5517, slope = 2.2110, color = "deepskyblue3") +
+  geom_abline(intercept = -7.804, slope = 2.296, color = "darkgoldenrod1") +
+  scale_shape_manual(name = "Collection Location", values = c(21, 24, 22)) +
+  scale_fill_manual(values = c("deepskyblue3", "darkgoldenrod1")) +
+  scale_color_manual(values=c("deepskyblue4","saddlebrown"), guide = "none") +
+  labs(y = "RIN",
+       x = "Brain pH") +
+  guides(
+  fill = guide_legend(
+    order = 1,
+    direction = "horizontal",  
+    override.aes = list(
+      shape = 21,
+      fill  = c("deepskyblue3", "darkgoldenrod1"),
+      color = c("deepskyblue4","saddlebrown")
+    ))
+) +
+  theme(
+    text = element_text(face = "bold")) +
+  theme(text = element_text(size = 24),
+        axis.line = element_line(),
+        panel.background = element_rect(fill='white'),
+        plot.background = element_rect(fill='white', color=NA),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = "top",
+        legend.background = element_blank(),
+        legend.box.background = element_blank(),
+        legend.box = "vertical",
+        legend.key.size = unit(0.3, "cm"),       
+        legend.key.height = unit(0.3, "cm"),     
+        legend.spacing.x = unit(0.2, "cm"),      
+        plot.title = element_text(face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(face = "bold", hjust = 0.5),
+        axis.title.x = element_text(face = "bold",
+                                    margin = margin(t = 2)),
+        axis.title.y = element_text(face = "bold",
+                                    margin = margin(r = 2)),
+        axis.text.x = element_text(face = "bold",
+                                   size = 24),
+        axis.text.y = element_text(face = "bold",
+                                   size = 24),
+        legend.text = element_text(face = "bold"),
+        legend.title = element_text(face = "bold")) +
+  theme(legend.position = "none")
+p_pHrin <- add_pvalue_block(
+  p_pHrin,
+  x = 6.75,
+  y = 9.5,
+  n  = 69,
+  p1 = "0.005",
+  p2 = "0.12"
+)
+p_pHrin
+```
+
+```{r}
+ggsave("graph/RIN vs Brain pH FULL.pdf", p_pHrin, dpi = 72, width = 4, height = 4)
+```
+
+```{r}
+### only legend
+legend_only <- get_legend(p_agerin)
+```
+
+```{r}
+ggsave("legend_only.pdf",plot = legend_only,width = 7,height = 2)
+```
+
+```{r}
+pmirin_ctrl = lm(RIN ~ PMI, data = subset(Very_Full2, Group == "CTRL"))
+pmirin_mdd = lm(RIN ~ PMI, data = subset(Very_Full2, Group == "MDD"))
+summary(pmirin_ctrl)
+summary(pmirin_mdd)
+```
+
+```{r}
+p_pmirin = ggplot(Very_Full2, aes(x = PMI, y = RIN, fill = Group, shape = Brain_Bank_Location, color = Group)) +
+  geom_point(size = 5, stroke = 0.8, alpha = 0.8) +
+    scale_y_continuous(
+    limits = c(0, 10),        
+    breaks = seq(2, 8, 2)    
+  ) +
+  scale_x_continuous(
+    limits = c(0, 65),        
+    breaks = seq(20, 60, 20)    
+  ) + 
+  geom_abline(intercept = 6.570794, slope =  -0.002216, color = "deepskyblue3") +
+  geom_abline(intercept = 6.7246774, slope = -0.0002622, color = "darkgoldenrod1") +
+  scale_shape_manual(name = "Collection Location", values = c(21, 24, 22)) +
+  scale_fill_manual(values = c("deepskyblue3", "darkgoldenrod1")) +
+  scale_color_manual(values=c("deepskyblue4","saddlebrown"), guide = "none") +
+  labs(y = "RIN",
+       x = "PMI") +
+  guides(
+  fill = guide_legend(
+    order = 1,
+    direction = "horizontal",   
+    override.aes = list(
+      shape = 21,
+      fill  = c("deepskyblue3", "darkgoldenrod1"),
+      color = c("deepskyblue4","saddlebrown")
+    ))
+) +
+  theme(
+    text = element_text(face = "bold")) +
+  theme(text = element_text(size = 24),
+        axis.line = element_line(),
+        panel.background = element_rect(fill='white'),
+        plot.background = element_rect(fill='white', color=NA),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = "top",
+        legend.background = element_blank(),
+        legend.box.background = element_blank(),
+        legend.box = "vertical",
+        legend.key.size = unit(0.3, "cm"),       
+        legend.key.height = unit(0.3, "cm"),    
+        legend.spacing.x = unit(0.2, "cm"),      
+        plot.title = element_text(face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(face = "bold", hjust = 0.5),
+        axis.title.x = element_text(face = "bold",
+                                    margin = margin(t = 2)),
+        axis.title.y = element_text(face = "bold",
+                                    margin = margin(r = 2)),
+        axis.text.x = element_text(face = "bold",
+                                   size = 24),
+        axis.text.y = element_text(face = "bold",
+                                   size = 24),
+        legend.text = element_text(face = "bold"),
+        legend.title = element_text(face = "bold")) +
+  theme(legend.position = "none")
+p_pmirin <- add_pvalue_block(
+  p_pmirin,
+  x = 50,
+  y = 9.5,
+  n  = 76,
+  p1 = "0.90",
+  p2 = "0.99"
+)
+p_pmirin
+```
+
+```{r}
+ggsave("graph/RIN vs PMI FULL.pdf", p_pmirin, dpi = 72, width = 4, height = 4)
+```
+
+```{r}
+pHrin_ctrl_ST1 = lm(RIN ~ Brain_pH, data = subset(ST1, Group == "CTRL"))
+pHrin_mdd_ST1 = lm(RIN ~ Brain_pH, data = subset(ST1, Group == "MDD"))
+summary(pHrin_ctrl_ST1)
+summary(pHrin_mdd_ST1)
+```
+
+```{r}
+p_st1_pHrin = ggplot(ST1, aes(x = Brain_pH, y = RIN, fill = Group, shape = Brain_Bank_Location, color = Group)) +
+  geom_point(size = 5, stroke = 0.8, alpha = 0.8) +
+    scale_y_continuous(
+    limits = c(0, 10),        
+    breaks = seq(2, 8, 2)    
+  ) +
+    scale_x_continuous(
+    limits = c(5.5, 7.125),        
+  ) +
+  geom_abline(intercept = -0.06772, slope = 1.09548, color = "deepskyblue3") +
+  geom_abline(intercept =  6.6990, slope = 0.1834, color = "darkgoldenrod1") +
+  scale_shape_manual(name = "Collection Location", values = c(21, 24, 22)) +
+  scale_fill_manual(values = c("deepskyblue3", "darkgoldenrod1")) +
+  scale_color_manual(values=c("deepskyblue4","saddlebrown"), guide = "none") +
+  labs(y = "RIN",
+       x = "Brain pH") +
+  guides(
+  fill = guide_legend(
+    order = 1,
+    direction = "horizontal",   
+    override.aes = list(
+      shape = 21,
+      fill  = c("deepskyblue3", "darkgoldenrod1"),
+      color = c("deepskyblue4","saddlebrown")
+    ))
+) +
+  theme(
+    text = element_text(face = "bold")) +
+  theme(text = element_text(size = 24),
+        axis.line = element_line(),
+        panel.background = element_rect(fill='white'),
+        plot.background = element_rect(fill='white', color=NA),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = "top",
+        legend.background = element_blank(),
+        legend.box.background = element_blank(),
+        legend.box = "vertical",
+        legend.key.size = unit(0.3, "cm"),       
+        legend.key.height = unit(0.3, "cm"),     
+        legend.spacing.x = unit(0.2, "cm"),      
+        plot.title = element_text(face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(face = "bold", hjust = 0.5),
+        axis.title.x = element_text(face = "bold",
+                                    margin = margin(t = 2)),
+        axis.title.y = element_text(face = "bold",
+                                    margin = margin(r = 2)),
+        axis.text.x = element_text(face = "bold",
+                                   size = 24),
+        axis.text.y = element_text(face = "bold",
+                                   size = 24),
+        legend.text = element_text(face = "bold"),
+        legend.title = element_text(face = "bold")) +
+  theme(legend.position = "none")
+p_st1_pHrin <- add_pvalue_block(
+  p_st1_pHrin,
+  x = 6.75,
+  y = 9.5,
+  n  = 25,
+  p1 = "0.25",
+  p2 = "0.82",
+  line_gap = 0.5
+)
+p_st1_pHrin
+```
+
+```{r}
+agerin_ctrl_ST1 = lm(RIN ~ Age, data = subset(ST1, Group == "CTRL"))
+agerin_mdd_ST1 = lm(RIN ~ Age, data = subset(ST1, Group == "MDD"))
+summary(agerin_ctrl_ST1)
+summary(agerin_mdd_ST1)
+```
+
+```{r}
+p_st1_agerin= ggplot(ST1, aes(x = Age, y = RIN, fill = Group, shape = Brain_Bank_Location, color = Group)) +
+  geom_point(size = 5, stroke = 0.8, alpha = 0.8) +
+    scale_y_continuous(
+    limits = c(0, 10),        
+    breaks = seq(2, 8, 2)    
+  ) +
+  geom_abline(intercept = 8.609172, slope = -0.027507, color = "deepskyblue3") +
+  geom_abline(intercept = 9.28262, slope = -0.03262, color = "darkgoldenrod1") +
+  scale_shape_manual(name = "Collection Location", values = c(21, 24, 22)) +
+  scale_fill_manual(values = c("deepskyblue3", "darkgoldenrod1")) +
+  scale_color_manual(values=c("deepskyblue4","saddlebrown"), guide = "none") +
+  labs(y = "RIN") +
+  guides(
+  fill = guide_legend(
+    order = 1,
+    direction = "horizontal",  
+    override.aes = list(
+      shape = 21,
+      fill  = c("deepskyblue3", "darkgoldenrod1"),
+      color = c("deepskyblue4","saddlebrown")
+    ))
+) +
+  theme(
+    text = element_text(face = "bold")) +
+  theme(text = element_text(size = 24),
+        axis.line = element_line(),
+        panel.background = element_rect(fill='white'),
+        plot.background = element_rect(fill='white', color=NA),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = "top",
+        legend.background = element_blank(),
+        legend.box.background = element_blank(),
+        legend.box = "vertical",
+        legend.key.size = unit(0.3, "cm"),       
+        legend.key.height = unit(0.3, "cm"),    
+        legend.spacing.x = unit(0.2, "cm"),     
+        plot.title = element_text(face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(face = "bold", hjust = 0.5),
+        axis.title.x = element_text(face = "bold",
+                                    margin = margin(t = 2)),
+        axis.title.y = element_text(face = "bold",
+                                    margin = margin(r = 2)),
+        axis.text.x = element_text(face = "bold",
+                                   size = 24),
+        axis.text.y = element_text(face = "bold",
+                                   size = 24),
+        legend.text = element_text(face = "bold"),
+        legend.title = element_text(face = "bold"))+
+  theme(legend.position = "none")
+
+p_st1_agerin <- add_pvalue_block(
+  p_st1_agerin,
+  x = 75,
+  y = 9.5,
+  n  = 38,
+  p1 = "0.01",
+  p2 = "0.01"
+)
+p_st1_agerin
+```
+
+```{r}
+pmirin_ctrl_ST1 = lm(RIN ~ PMI, data = subset(ST1, Group == "CTRL"))
+pmirin_mdd_ST1 = lm(RIN ~ PMI, data = subset(ST1, Group == "MDD"))
+summary(pmirin_ctrl_ST1)
+summary(pmirin_mdd_ST1)
+```
+
+```{r}
+p_st1_pmirin = ggplot(ST1, aes(x = PMI, y = RIN, fill = Group, shape = Brain_Bank_Location, color = Group)) +
+  geom_point(size = 5, stroke = 0.8, alpha = 0.8) +
+    scale_y_continuous(
+    limits = c(0, 10),        
+    breaks = seq(2, 8, 2)    
+  ) +
+  scale_x_continuous(
+    limits = c(0, 65),        
+    breaks = seq(20, 60, 20)    
+  ) + 
+  geom_abline(intercept = 6.83946, slope =  0.01418, color = "deepskyblue3") +
+  geom_abline(intercept = 8.05086, slope = -0.02070, color = "darkgoldenrod1") +
+  scale_shape_manual(name = "Collection Location", values = c(21, 24, 22)) +
+  scale_fill_manual(values = c("deepskyblue3", "darkgoldenrod1")) +
+  scale_color_manual(values=c("deepskyblue4","saddlebrown"), guide = "none") +
+  labs(y = "RIN",
+       x = "PMI") +
+  guides(
+  fill = guide_legend(
+    order = 1,
+    direction = "horizontal",   
+    override.aes = list(
+      shape = 21,
+      fill  = c("deepskyblue3", "darkgoldenrod1"),
+      color = c("deepskyblue4","saddlebrown")
+    ))
+) +
+  theme(
+    text = element_text(face = "bold")) +
+  theme(text = element_text(size = 24),
+        axis.line = element_line(),
+        panel.background = element_rect(fill='white'),
+        plot.background = element_rect(fill='white', color=NA),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = "top",
+        legend.background = element_blank(),
+        legend.box.background = element_blank(),
+        legend.box = "vertical",
+        legend.key.size = unit(0.3, "cm"),       
+        legend.key.height = unit(0.3, "cm"),     
+        legend.spacing.x = unit(0.2, "cm"),      
+        plot.title = element_text(face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(face = "bold", hjust = 0.5),
+        axis.title.x = element_text(face = "bold",
+                                    margin = margin(t = 2)),
+        axis.title.y = element_text(face = "bold",
+                                    margin = margin(r = 2)),
+        axis.text.x = element_text(face = "bold",
+                                   size = 24),
+        axis.text.y = element_text(face = "bold",
+                                   size = 24),
+        legend.text = element_text(face = "bold"),
+        legend.title = element_text(face = "bold")) +
+  theme(legend.position = "none")
+p_st1_pmirin <- add_pvalue_block(
+  p_st1_pmirin,
+  x = 50,
+  y = 9.5,
+  n  = 38,
+  p1 = "0.32",
+  p2 = "0.23"
+)
+p_st1_pmirin
+```
+
+
+```{r}
+ggsave("graph/RIN vs Brain pH ST1.pdf", p_st1_pHrin, dpi = 72, width = 4, height = 4)
+```
+
+```{r}
+ggsave("graph/RIN vs Age ST1.pdf", p_st1_agerin, dpi = 72, width = 4, height = 4)
+```
+
+```{r}
+ggsave("graph/RIN vs PMI ST1.pdf", p_st1_pmirin, dpi = 72, width = 4, height = 4)
+```
+

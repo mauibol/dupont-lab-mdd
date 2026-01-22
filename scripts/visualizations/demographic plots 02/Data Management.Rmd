@@ -1,0 +1,31 @@
+---
+title: "Data Management"
+output: html_document
+date: "2025-12-16"
+---
+```{r}
+library(dplyr)
+library(tidyverse)
+library(readxl)
+```
+
+```{r}
+ST1 = read_excel("ST1.xlsx") %>% 
+  select(HNCID, ID, `Study ID`, Group, Age, PMI, RIN, `Brain pH`, Sex, `Brain Bank`, `Tissue origin`, `Reported Number of Biological Relatives with Psychopathology of Suicidal Behavior`,
+         `Brain and Blood Toxicology at Time of Death`, `Global Assessment Scale (GAS) Score`, `Age of onset of MDD             ( - = not applicable)`, `Mode of Death`) %>%
+  rename(Brain_Bank = `Brain Bank`,
+         Brain_pH = `Brain pH`,
+         GAS = `Global Assessment Scale (GAS) Score`,
+         `Age of onset of MDD` = `Age of onset of MDD             ( - = not applicable)`) %>%
+  mutate(Brain_pH = as.numeric(Brain_pH),
+         `Age of onset of MDD` = as.numeric(`Age of onset of MDD`),
+         GAS = as.numeric(GAS)) %>%
+  mutate(Location = ifelse(`Tissue origin` == "Europe", "EU", "US")) %>%
+  mutate(Brain_Bank_Location = paste(Brain_Bank, Location))
+```
+
+```{r}
+Very_Full2 = read.csv("Very_Full2.csv")
+```
+
+
