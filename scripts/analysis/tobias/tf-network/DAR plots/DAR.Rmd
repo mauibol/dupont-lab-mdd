@@ -1,0 +1,68 @@
+---
+title: "Untitled"
+output: html_document
+date: "2025-11-10"
+---
+
+```{r}
+library(readxl)
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+```
+
+```{r}
+DAR = read_xlsx("filtered_ST12.xlsx")
+```
+
+```{r}
+DAR_dot = DAR %>% select(cell_type, logFC, adj.P.Val)
+```
+
+```{r}
+ggplot(DAR_dot, aes(x = logFC, y = cell_type)) +
+  geom_point(aes(color = adj.P.Val)) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
+  geom_vline(xintercept = min(DAR_dot$logFC), color = "black") +  # y-axis at left edge
+  geom_hline(yintercept = 0.5, color = "black") +             # x-axis under first y-tick
+  scale_size_continuous(name = "−log10(adj.P.Val)", range = c(1, 8)) +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.y = element_text(size = 10),
+    axis.text.x = element_text(size = 10),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  ) +
+  labs(x = "logFC", y = NULL, title = "DARs MDD vs. Ctrl")
+```
+
+```{r}
+p_dar = ggplot(DAR_dot, aes(x =logFC, y = cell_type)) +
+  geom_point(aes(color = adj.P.Val)) +
+  
+  # 中间的虚线
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
+
+  # 设置主题，保留刻度和轴线
+  theme_minimal(base_size = 18, ) +
+  theme(
+    axis.text.x = element_text(face = 'bold'),
+    axis.text.y = element_text(face = 'bold'),
+    axis.ticks = element_line(color = "black"),
+    axis.line = element_line(color = "black"),
+    panel.grid = element_blank()
+  ) +
+  
+  labs(
+    x = "Logfc",  # 如果你想隐藏“x”标题
+    y = NULL,
+    title = "DARs MDD vs. CTRL"
+  )
+```
+
+```{r}
+pdf('DAR MDD vs Ctrl.pdf', onefile = T, width= 8, height = 6)
+print(p_dar)
+dev.off()
+```
+
