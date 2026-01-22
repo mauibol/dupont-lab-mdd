@@ -1,0 +1,80 @@
+---
+title: "Task 1.4.3"
+output: html_document
+date: "2025-12-15"
+---
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+library(cowplot)
+library(scales)
+library(readxl)
+```
+
+```{r}
+wilcox.test(
+  snMultiome_Median_RNA_Features ~ Group,
+  data = boxplot_data,
+  exact = FALSE
+)
+```
+
+```{r}
+p_box_median_rnafeat = ggplot(boxplot_data, aes(x = Group, y = snMultiome_Median_RNA_Features, fill = Group, color = Group)) +
+  geom_boxplot(aes(group = Group), fill = "white", color = "black", outlier.shape = NA) +
+  geom_jitter(aes(shape = Brain_Bank_Location), size = 5, stroke = 0.8, alpha = 0.8) +
+  scale_y_continuous(
+    labels = label_number(scale = 1e-3, suffix = "k")
+  ) +
+   annotate("text", x = 2, y = 4800, label= "atop(bolditalic('Wilcoxon p'==0.80), bolditalic('n'==30))", parse = TRUE) +
+  scale_shape_manual(name = "Collection Location", values = c(21, 24)) +
+  scale_fill_manual(values = c("deepskyblue3", "darkgoldenrod1")) +
+  scale_color_manual(values=c("deepskyblue4","saddlebrown"), guide = "none") +
+  labs(y = "snMultiome Median RNA Features",
+       x = NULL) +
+  guides(
+  fill = guide_legend(
+    order = 1,
+    direction = "horizontal",   
+    override.aes = list(
+      shape = 21,
+      fill  = c("darkgoldenrod1", "deepskyblue3")
+    ))
+) +
+  theme(
+    text = element_text(face = "bold")) +
+  theme(text = element_text(size = 24),
+        axis.line = element_line(),
+        panel.background = element_rect(fill='white'),
+        plot.background = element_rect(fill='white', color=NA),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = "top",
+        legend.background = element_blank(),
+        legend.box.background = element_blank(),
+        legend.box = "vertical",
+        legend.key.size = unit(0.3, "cm"),      
+        legend.key.height = unit(0.3, "cm"),    
+        legend.spacing.x = unit(0.2, "cm"),      
+        plot.title = element_text(face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(face = "bold", hjust = 0.5),
+        axis.title.x = element_text(face = "bold",
+                                    margin = margin(t = 2)),
+        axis.title.y = element_text(face = "bold",
+                                    margin = margin(r = 2)),
+        axis.text.x = element_text(face = "bold",
+                                   size = 24),
+        axis.text.y = element_text(face = "bold",
+                                   size = 24),
+        legend.text = element_text(face = "bold"),
+        legend.title = element_text(face = "bold"))
+p_box_median_rnafeat
+```
+
+```{r}
+ggsave("final_graph/boxplot_snMultiome_Median_RNA_Features MDD vs CTRL.pdf",p_box_median_rnafeat, dpi = 72, width = 4, height = 4)
+```
+

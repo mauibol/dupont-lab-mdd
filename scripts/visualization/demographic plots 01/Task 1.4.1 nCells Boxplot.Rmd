@@ -1,0 +1,102 @@
+---
+title: "Task 1.4.1 Boxplot nCells"
+output: html_document
+date: "2025-12-12"
+---
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+library(cowplot)
+library(scales)
+library(readxl)
+```
+
+```{r}
+boxplot_data = read_excel("Multiomics, used donor .xlsx")
+```
+
+```{r}
+boxplot_data = boxplot_data %>% mutate(Group = case_when(
+    grepl("^CTRL", Donor, ignore.case = TRUE) ~ "CTRL",
+    grepl("^MDD",  Donor, ignore.case = TRUE) ~ "MDD",
+    TRUE ~ NA_character_))
+```
+
+```{r}
+boxplot_data = inner_join(boxplot_data, data %>%
+  select(Study.ID, Brain.Bank, Location) %>%
+  distinct(Study.ID, .keep_all = TRUE),
+  by = c("Donor" = "Study.ID"))
+```
+
+```{r}
+boxplot_data = boxplot_data %>% mutate(Brain_Bank_Location = paste(Brain.Bank, Location))
+```
+
+```{r}
+wilcox.test(
+  snMultiome_N_Cells ~ Group,
+  data = boxplot_data,
+  exact = FALSE
+)
+```
+
+```{r}
+p_box_ncells = ggplot(boxplot_data, aes(x = Group, y = snMultiome_N_Cells, fill = Group, color = Group)) +
+  geom_boxplot(aes(group = Group), fill = "white", color = "black", outlier.shape = NA) +
+  geom_jitter(aes(shape = Brain_Bank_Location), size = 5, stroke = 0.8, alpha = 0.8) +
+  scale_y_continuous(
+    labels = label_number(scale = 1e-3, suffix = "k")
+  ) +
+   annotate("text", x = 1, y = 39000, label= "atop(bolditalic('Wilcoxon p'==0.25), bolditalic('n'==30))", parse = TRUE) +
+  scale_shape_manual(name = "Collection Location", values = c(21, 24, 22)) +
+  scale_fill_manual(values = c("deepskyblue3", "darkgoldenrod1")) +
+  scale_color_manual(values=c("deepskyblue4","saddlebrown"), guide = "none") +
+  labs(y = "snMultiome Cells per Donor",
+       x = NULL) +
+  guides(
+  fill = guide_legend(
+    order = 1,
+    direction = "horizontal",
+    override.aes = list(
+      shape = 21,
+      fill  = c("darkgoldenrod1", "deepskyblue3")
+    ))
+) +
+  theme(
+    text = element_text(face = "bold")) +
+  theme(text = element_text(size = 24),
+        axis.line = element_line(),
+        panel.background = element_rect(fill='white'),
+        plot.background = element_rect(fill='white', color=NA),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = "top",
+        legend.background = element_blank(),
+        legend.box.background = element_blank(),
+        legend.box = "vertical",
+        legend.key.size = unit(0.3, "cm"),       
+        legend.key.height = unit(0.3, "cm"),     
+        legend.spacing.x = unit(0.2, "cm"),      
+        plot.title = element_text(face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(face = "bold", hjust = 0.5),
+        axis.title.x = element_text(face = "bold",
+                                    margin = margin(t = 2)),
+        axis.title.y = element_text(face = "bold",
+                                    margin = margin(r = 2)),
+        axis.text.x = element_text(face = "bold",
+                                   size = 24),
+        axis.text.y = element_text(face = "bold",
+                                   size = 24),
+        legend.text = element_text(face = "bold"),
+        legend.title = element_text(face = "bold"))
+p_box_ncells
+```
+
+```{r}
+ggsave("final_graph/boxplot_snMultiome_N_Cells MDD vs CTRL.pdf", p_box_ncells, dpi = 72, width = 4, height = 4)
+```
+

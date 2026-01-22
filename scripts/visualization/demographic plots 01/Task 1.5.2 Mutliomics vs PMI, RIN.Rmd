@@ -1,0 +1,176 @@
+---
+title: "Task 1.5.2"
+output: html_document
+date: "2025-12-12"
+---
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+```
+
+```{r}
+data = data %>% mutate(Brain_Bank_Location = paste(Brain.Bank, Location))
+```
+
+```{r}
+summary(lm(data = data, snMultiome_ATAC_mean_reads_per_cell ~ PMI))
+cor.test(data$PMI, data$snMultiome_ATAC_mean_reads_per_cell)
+```
+
+```{r}
+pmi_multiatac_ctrl = lm(snMultiome_ATAC_mean_reads_per_cell ~ PMI, data = subset(data, Group == "CTRL"))
+pmi_multiatac_mdd = lm(snMultiome_ATAC_mean_reads_per_cell ~ PMI, data = subset(data, Group == "MDD"))
+summary(pmi_multiatac_ctrl)
+summary(pmi_multiatac_mdd)
+```
+
+```{r}
+p_pmi_multiatac = ggplot(data, aes(x = PMI, y = snMultiome_ATAC_mean_reads_per_cell, fill = Group, shape = Brain_Bank_Location, color = Group)) +
+  geom_point(size = 5, stroke = 0.8, alpha = 0.8) +
+  geom_abline(intercept = 45340.4, slope = 549.6, color = "deepskyblue3") +
+  geom_abline(intercept = 45880.4, slope = 106.6, color = "darkgoldenrod1") +
+  scale_x_continuous(
+    limits = c(0, 65),        
+    breaks = seq(20, 60, 20)   
+  ) + 
+  scale_y_continuous(
+    labels = label_number(scale = 1e-3, suffix = "k")
+  ) +
+  scale_shape_manual(name = "Collection Location", values = c(21, 22)) +
+  scale_fill_manual(values = c("deepskyblue3", "darkgoldenrod1")) +
+  scale_color_manual(values=c("deepskyblue4","saddlebrown"), guide = "none") +
+  labs(y = "AVG ATAC reads") +
+  guides(
+  fill = guide_legend(
+    order = 1,
+    direction = "horizontal",  
+    override.aes = list(
+      shape = 21,
+      fill  = c("deepskyblue3","darkgoldenrod1"),
+      color = c("deepskyblue4","saddlebrown")
+    ))
+) +
+  theme(
+    text = element_text(face = "bold")) +
+  theme(text = element_text(size = 24),
+        axis.line = element_line(),
+        panel.background = element_rect(fill='white'),
+        plot.background = element_rect(fill='white', color=NA),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = "top",
+        legend.background = element_blank(),
+        legend.box.background = element_blank(),
+        legend.box = "vertical",
+        legend.key.size = unit(0.3, "cm"),      
+        legend.key.height = unit(0.3, "cm"),     
+        legend.spacing.x = unit(0.2, "cm"),     
+        plot.title = element_text(face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(face = "bold", hjust = 0.5),
+        axis.title.x = element_text(face = "bold",
+                                    margin = margin(t = 2)),
+        axis.title.y = element_text(face = "bold",
+                                    margin = margin(r = 2)),
+        axis.text.x = element_text(face = "bold",
+                                   size = 24),
+        axis.text.y = element_text(face = "bold",
+                                   size = 24),
+        legend.text = element_text(face = "bold"),
+        legend.title = element_text(face = "bold"))
+p_pmi_multiatac<- add_pvalue_block(
+  p_pmi_multiatac,
+  x = 50,
+  y = 380000,
+  n  = 74,
+  p1 = "0.48",
+  p2 = "0.93",
+  line_gap = 0.06
+)
+p_pmi_multiatac
+```
+
+```{r}
+summary(lm(data = data, snMultiome_ATAC_mean_reads_per_cell ~ RIN))
+cor.test(data$RIN, data$snMultiome_ATAC_mean_reads_per_cell)
+```
+
+```{r}
+rin_multiatac_ctrl = lm(snMultiome_ATAC_mean_reads_per_cell ~ RIN, data = subset(data, Group == "CTRL"))
+rin_multiatac_mdd = lm(snMultiome_ATAC_mean_reads_per_cell ~ RIN, data = subset(data, Group == "MDD"))
+summary(rin_multiatac_ctrl)
+summary(rin_multiatac_mdd)
+```
+
+```{r}
+p_rin_multiatac = ggplot(data, aes(x = RIN, y = snMultiome_ATAC_mean_reads_per_cell, fill = Group, shape = Brain_Bank_Location, color = Group)) +
+  geom_point(size = 5, stroke = 0.8, alpha = 0.8) +
+  geom_abline(intercept = 284376, slope = -30645, color = "deepskyblue3") +
+  geom_abline(intercept = 162229, slope = -14640, color = "darkgoldenrod1") +
+  scale_x_continuous(
+    limits = c(5.5, 8.75),        
+    breaks = seq(6, 8, 1)    
+  ) + 
+  scale_y_continuous(
+    labels = label_number(scale = 1e-3, suffix = "k")
+  ) +
+  scale_shape_manual(name = "Collection Location", values = c(21, 22)) +
+  scale_fill_manual(values = c("deepskyblue3", "darkgoldenrod1")) +
+  scale_color_manual(values=c("deepskyblue4","saddlebrown"), guide = "none") +
+  labs(y = "AVG ATAC reads") +
+  guides(
+  fill = guide_legend(
+    order = 1,
+    direction = "horizontal",   
+    override.aes = list(
+      shape = 21,
+      fill  = c("deepskyblue3", "darkgoldenrod1")
+    ))
+) +
+  theme(
+    text = element_text(face = "bold")) +
+  theme(text = element_text(size = 24),
+        axis.line = element_line(),
+        panel.background = element_rect(fill='white'),
+        plot.background = element_rect(fill='white', color=NA),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = "top",
+        legend.background = element_blank(),
+        legend.box.background = element_blank(),
+        legend.box = "vertical",
+        legend.key.size = unit(0.3, "cm"),       # shrink legend key box
+        legend.key.height = unit(0.3, "cm"),     # shrink height
+        legend.spacing.x = unit(0.2, "cm"),      # reduce horizontal spacing
+        plot.title = element_text(face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(face = "bold", hjust = 0.5),
+        axis.title.x = element_text(face = "bold",
+                                    margin = margin(t = 2)),
+        axis.title.y = element_text(face = "bold",
+                                    margin = margin(r = 2)),
+        axis.text.x = element_text(face = "bold",
+                                   size = 24),
+        axis.text.y = element_text(face = "bold",
+                                   size = 24),
+        legend.text = element_text(face = "bold"),
+        legend.title = element_text(face = "bold")) +
+  theme(legend.position = "none")
+p_rin_multiatac<- add_pvalue_block(
+  p_rin_multiatac,
+  x = 6.25,
+  y = 380000,
+  n  = 74,
+  p1 = "0.01",
+  p2 = "0.62",
+  line_gap = 0.06
+)
+p_rin_multiatac
+```
+
+```{r}
+ggsave("final_graph/1.5.2 PMI vs snMultiome_ATAC_mean_reads_per_cell mdd vs ctrl 3.pdf", p_pmi_multiatac, dpi = 72, width = 4, height = 4)
+ggsave("final_graph/1.5.2 RIN vs snMultiome_ATAC_mean_reads_per_cell mdd vs ctrl 3.pdf", p_rin_multiatac, dpi = 72, width = 4, height = 4)
+```
+
+

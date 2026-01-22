@@ -1,0 +1,19 @@
+---
+title: "Data Management"
+output: html_document
+date: "2026-01-22"
+---
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(readxl)
+```
+
+```{r}
+Muliomics = read_excel("multiomics.xlsx")
+data = read.csv("sample_metadata_August1_2025.csv") %>% mutate(Location = ifelse(Brain.Bank == "CU-NYSPI", "EU", "US"))
+data = left_join(data, Muliomics, by = "sample")
+```
+
