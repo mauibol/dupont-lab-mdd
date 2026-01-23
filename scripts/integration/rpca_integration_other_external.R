@@ -898,3 +898,159 @@ ggsave(
 saveRDS(franjic, "franjic_integrated_11.10.25.rds")
 saveRDS(ayhan, "ayhan_integrated_11.10.25.rds")
 saveRDS(boldrini2, "boldrini_multiome_data_11.10.25.rds")
+
+
+### Create heatmaps of pearson correlations with the datasets ####
+### Fix the multi annotations
+multi$combined_annotations <- dplyr::case_when(
+  !(is.na(multi$traj)) ~ multi$traj,
+  .default=as.character(multi$official_annotation_short)
+)
+
+unique(multi$combined_annotations)
+
+
+############################## Zhou Dataset ####################################
+
+zhou <- readRDS('/data/Share/marimad/preprocessing_home/lasso/merged_rpca.rds')
+zhou <- subset(zhou, subset = investigator == 'Zhou')
+
+zhou <- FindVariableFeatures(zhou, nfeature=15000)
+
+# Pseudobulk our data
+rna_exp <- AggregateExpression(multi, assay='RNA', group.by = 'combined_annotations')
+rna_exp <- rna_exp %>% as.data.frame()
+
+# Pseudobulk other dataset
+zhou_exp <- AggregateExpression(zhou, assay='RNA', group.by = 'annotation')
+zhou_exp <- zhou_exp %>% as.data.frame()
+
+# Get common genes from top variable features from each
+multi_hvgs <- VariableFeatures(multi, nfeatures= 10000)
+zhou_hvgs <- VariableFeatures(zhou, nfeatures = 15000)
+common_all <- intersect(multi_hvgs, zhou_hvgs)
+
+neurogen <- c('PAX6','SOX2','GFAP','HES5','FABP7','NES','ETNPPL','ASCL1','FOXO3',
+              'NR2E1','EOMES','NEUROD1','NES','MCM2','PCNA','MKI67','TOP2A',
+              'MYT1L','PROX1','DCX','CALB2','RELN','ST8SIA2','ST8SIA4','RBFOX3',
+              'BHLHE22','COL25A1','POSTN','SYT1','CAMK2A','SLC17A7','CALB1',
+              'SOX11', 'SOX4','GAD1', 'GAD2', 'SHH', 'PTCH1', 'SMO', 'GLI1', 'GLI2',
+              'HHIP', 'HOXA9', 'HOXB4', 'HOXA10', 'HOXC6','HOXD13', 'BMP2', 'BMP4', 'BMP7','BMPR1A','BMPR1B', 'BMPR2',
+              'NOG', 'GREM1', 'AXIN2','DVL1','DVL2','CTNNB1', 'SEMA3D', 'FOS','HSPB8')
+
+common_neurogen <- intersect(common_all, neurogen)
+common_neurogen
+
+multi_hvgs_subset <- VariableFeatures(multi, nfeatures= 5000)
+zhou_hvgs_subset <- VariableFeatures(zhou, nfeatures = 5000)
+common_genes <- intersect(multi_hvgs_subset, zhou_hvgs_subset)
+common_genes <- c(common_genes,common_neurogen)
+
+
+cor_mat <- cor(rna_exp[common_genes,], zhou_exp[common_genes,], method = "pearson")
+
+getwd()
+
+pdf('multiome_official/manuscript_figs/zhou_pearson_corr_11.18.25.pdf', width=7, height=8)
+pheatmap::pheatmap(cor_mat, cluster_rows =T, cluster_cols = T, color = colorRampPalette(viridis(3))(30), 
+                   border_color = NA, show_rownames = TRUE, show_colnames = TRUE, fontsize_col = 12, fontsize_row = 12,treeheight_row = 8,treeheight_col = 8)
+dev.off()
+
+
+########################### Franjic Dataset ####################################
+
+franjic <- readRDS('/data/Share/marimad/sc_datasets/franjic_boldrini_harmony.rds')
+franjic <- subset(franjic, investigator == 'Franjic')
+
+
+VlnPlot(multi, features='MBP', group.by = 'cell_annotation_leiden', pt.size=0)+NoLegend()
+
+franjic <- FindVariableFeatures(franjic, nfeature=10000)
+
+# Pseudobulk our data
+rna_exp <- AggregateExpression(multi, assay='RNA', group.by = 'combined_annotations')
+rna_exp <- rna_exp %>% as.data.frame()
+
+# Pseudobulk other dataset
+fran_exp <- AggregateExpression(franjic, assay='RNA', group.by = 'ct')
+fran_exp <- fran_exp %>% as.data.frame()
+
+# Get common genes from top variable features from each
+multi_hvgs <- VariableFeatures(multi, nfeatures= 5000)
+fran_hvgs <- VariableFeatures(franjic, nfeatures = 5000)
+common_genes <- intersect(multi_hvgs, fran_hvgs)
+common_genes <- intersect(common_genes, neurogen)
+
+
+cor_mat <- cor(rna_exp[common_genes,], fran_exp[common_genes,], method = "pearson")
+pheatmap::pheatmap(cor_mat, cluster_rows =F, cluster_cols = F, color = colorRampPalette(viridis(3))(30), border_color = NA, 
+                   show_rownames = TRUE, show_colnames = TRUE, fontsize_col = 10, fontsize_row = 10)
+
+pdf('multiome_official/manuscript_figs/franjic_pearson_corr_11.18.25.pdf', width=6, height=7)
+pheatmap::pheatmap(cor_mat, cluster_rows =T, cluster_cols = T, color = colorRampPalette(viridis(3))(30), 
+                   border_color = NA, show_rownames = TRUE, show_colnames = TRUE, fontsize_col = 12, fontsize_row = 12,treeheight_row = 8,treeheight_col = 8)
+dev.off()
+
+
+########################### Ayhan Dataset ####################################
+
+ayhan <- readRDS('/data/Share/marimad/sc_datasets/ayhan_boldrini_harmony.rds')
+ayhan <- subset(ayhan, investigator == 'Ayhan')
+ayhan <- FindVariableFeatures(ayhan, nfeature=10000)
+
+
+# Pseudobulk our data
+rna_exp <- AggregateExpression(multi, assay='RNA', group.by = 'combined_annotations')
+rna_exp <- rna_exp %>% as.data.frame()
+
+# Pseudobulk other dataset
+ayhan_exp <- AggregateExpression(ayhan, assay='RNA', group.by = 'cls')
+ayhan_exp <- ayhan_exp %>% as.data.frame()
+
+# Get common genes from top variable features from each
+multi_hvgs <- VariableFeatures(multi, nfeatures= 5000)
+ayhan_hvgs <- VariableFeatures(ayhan, nfeatures = 5000)
+common_genes <- intersect(multi_hvgs, ayhan_hvgs)
+common_genes <- intersect(common_genes, neurogen)
+
+
+
+cor_mat <- cor(rna_exp[common_genes,], ayhan_exp[common_genes,], method = "pearson")
+pheatmap::pheatmap(cor_mat, cluster_rows =F, cluster_cols = F, color = colorRampPalette(viridis(3))(30), border_color = NA, show_rownames = TRUE, show_colnames = TRUE, fontsize_col = 10, fontsize_row = 10)
+
+pdf('multiome_official/manuscript_figs/ayhan_pearson_corr_11.18.25.pdf', width=7, height=7)
+pheatmap::pheatmap(cor_mat, cluster_rows =T, cluster_cols = T, color = colorRampPalette(viridis(3))(30), 
+                   border_color = NA, show_rownames = TRUE, show_colnames = TRUE, fontsize_col = 12, fontsize_row = 12,treeheight_row = 8,treeheight_col = 8)
+dev.off()
+
+########################### Dimitru Dataset ####################################
+
+dimi <- readRDS('/data/Share/pengmad/multiome_official/Dumitru_combined_processed_11.17.25.rds')
+dimi
+dimi <- FindVariableFeatures(dimi, nfeature=10000)
+
+unique(multi$trajectory_annotations_full)
+
+# Pseudobulk our data
+rna_exp <- AggregateExpression(multi, assay='RNA', group.by = 'combined_pdfs')
+rna_exp <- rna_exp %>% as.data.frame()
+
+# Pseudobulk other dataset
+dimi_exp <- AggregateExpression(dimi, assay='RNA', group.by = 'Dumitru_cell_type')
+dimi_exp <- dimi_exp %>% as.data.frame()
+
+# Get common genes from top variable features from each
+multi_hvgs <- VariableFeatures(multi, nfeatures= 5000)
+dimi_hvgs <- VariableFeatures(dimi, nfeatures = 5000)
+common_genes <- intersect(multi_hvgs, dimi_hvgs)
+common_genes <- intersect(common_genes, neurogen)
+
+cor_mat <- cor(rna_exp[common_genes,], dimi_exp[common_genes,], method = "pearson")
+pheatmap::pheatmap(cor_mat, cluster_rows =F, cluster_cols = F, color = colorRampPalette(viridis(3))(30), border_color = NA, show_rownames = TRUE, show_colnames = TRUE, fontsize_col = 10, fontsize_row = 10)
+
+pdf('multiome_official/manuscript_figs/dimitru_pearson_corr_11.18.25.pdf', width=7, height=8.5)
+pheatmap::pheatmap(cor_mat, cluster_rows =T, cluster_cols = T, color = colorRampPalette(viridis(3))(30), border_color = NA, 
+                   show_rownames = TRUE, show_colnames = TRUE, fontsize_col = 12, fontsize_row = 12, treeheight_row = 8, treeheight_col = 8)
+dev.off()        
+
+
