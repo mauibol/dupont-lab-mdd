@@ -438,12 +438,6 @@ Partial_graph_same_direction <- function(df, TF = "", cell = "", sig_protein_onl
       start_cap = circle(3.5, "mm"), end_cap = circle(3.5, "mm")
     ) +
     
-    # scale_edge_linetype_manual(
-    #   name   = "Direction",
-    #   values = c("same" = "solid"),
-    #   na.value = "solid"
-    # ) +
-    
     guides(
       edge_linetype = guide_legend(
         keywidth = unit(0.8, "cm"),   # ✅ only way to widen the dashed line

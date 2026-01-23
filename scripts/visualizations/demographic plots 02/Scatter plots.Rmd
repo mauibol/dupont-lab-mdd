@@ -15,6 +15,7 @@ library(ggtext)
 ```
 
 ```{r}
+#label function
 add_pvalue_block <- function(
   p,
   x,
