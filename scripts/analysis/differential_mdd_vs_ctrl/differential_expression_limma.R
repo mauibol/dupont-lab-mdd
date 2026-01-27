@@ -164,7 +164,7 @@ for (type in cls) {
     topTable_dupcor <- topTable(fit, number = length(genes), coef = 'DiagnosisMDD')
     topTable_dupcor$cell_type <- type
     topTable_dupcor$gene <- rownames(topTable_dupcor)
-    de_lasso_batch <- rbind(de_batch, topTable_dupcor)
+    de_batch <- rbind(de_batch, topTable_dupcor)
   }, error = function(e) {
     message("Model failed for ", type, ": ", e$message)
     return(NULL)
